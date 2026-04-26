@@ -1,4 +1,266 @@
-/Users/carlosalbertobruno/Downloads/procedimentos_local.html: No such file or directory
-carlosalbertobruno@MacBook-Air-de-Carlos ~ % 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procedimentos Pendentes · Dr. Carlos Bruno</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--beige-light:#f5ede4;--beige-mid:#ddcab8;--beige-dark:#bfb0a2;--brown:#8a7060;--brown-dark:#5c4a3a;--text:#2e221a;--text-muted:#9a8878;--white:#fffaf6;--pending:#c8a882;--scheduled:#7aab8a;--done:#9ab5c8;--cancelled:#c89a9a;--shadow:0 2px 16px rgba(92,74,58,0.10);--radius:14px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--beige-light);color:var(--text);min-height:100vh;}
+  header{background:var(--brown-dark);color:var(--beige-light);padding:18px 24px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.18);}
+  header h1{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:500;}
+  header small{font-size:0.72rem;color:var(--beige-mid);letter-spacing:0.08em;text-transform:uppercase;display:block;}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .badge-total{background:var(--pending);color:var(--brown-dark);font-size:0.75rem;font-weight:500;padding:3px 10px;border-radius:20px;}
+  .btn-add-top{background:var(--beige-mid);color:var(--brown-dark);border:none;border-radius:20px;padding:7px 16px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;cursor:pointer;}
+  .filters{display:flex;gap:8px;padding:14px 20px 0;overflow-x:auto;scrollbar-width:none;}
+  .filters::-webkit-scrollbar{display:none;}
+  .filter-btn{background:var(--white);border:1.5px solid var(--beige-mid);border-radius:20px;padding:5px 14px;font-size:0.78rem;font-family:'DM Sans',sans-serif;color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.18s;}
+  .filter-btn.active,.filter-btn:hover{background:var(--brown-dark);color:var(--beige-light);border-color:var(--brown-dark);}
+  .stats-bar{display:flex;gap:10px;padding:14px 20px 0;overflow-x:auto;scrollbar-width:none;}
+  .stats-bar::-webkit-scrollbar{display:none;}
+  .stat-chip{background:var(--white);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:var(--shadow);}
+  .stat-dot{width:9px;height:9px;border-radius:50%;}
+  .stat-chip span{font-size:0.78rem;color:var(--text-muted);}
+  .stat-chip strong{font-size:0.9rem;}
+  .board{display:flex;gap:14px;padding:16px 20px 80px;overflow-x:auto;align-items:flex-start;}
+  .col{flex:0 0 280px;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;max-height:calc(100vh - 190px);}
+  .col-header{padding:14px 16px 10px;border-bottom:1.5px solid var(--beige-light);display:flex;align-items:center;gap:8px;background:var(--white);border-radius:var(--radius) var(--radius) 0 0;}
+  .col-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .col-title{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;flex:1;}
+  .col-count{background:var(--beige-light);color:var(--brown);font-size:0.72rem;font-weight:500;padding:2px 8px;border-radius:10px;}
+  .col-body{padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;flex:1;}
+  .col-body::-webkit-scrollbar{width:4px;}
+  .col-body::-webkit-scrollbar-thumb{background:var(--beige-mid);border-radius:4px;}
+  .card{background:var(--beige-light);border-radius:10px;padding:12px 13px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;border-left:3px solid transparent;}
+  .card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(92,74,58,0.12);}
+  .card-name{font-weight:500;font-size:0.88rem;color:var(--brown-dark);margin-bottom:4px;}
+  .card-proc{font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;line-height:1.4;}
+  .card-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .card-date{font-size:0.70rem;color:var(--brown);background:rgba(191,176,162,0.3);padding:2px 7px;border-radius:6px;}
+  .card-date.alert{background:#f5d0d0;color:#a04040;}
+  .card-actions{display:flex;gap:4px;}
+  .card-btn{background:none;border:none;cursor:pointer;padding:3px 5px;border-radius:6px;font-size:0.75rem;color:var(--text-muted);transition:background 0.15s;}
+  .card-btn:hover{background:var(--beige-mid);}
+  .col[data-status="pendente"] .col-dot{background:var(--pending);}
+  .col[data-status="pendente"] .card{border-left-color:var(--pending);}
+  .col[data-status="agendado"] .col-dot{background:var(--scheduled);}
+  .col[data-status="agendado"] .card{border-left-color:var(--scheduled);}
+  .col[data-status="realizado"] .col-dot{background:var(--done);}
+  .col[data-status="realizado"] .card{border-left-color:var(--done);}
+  .col[data-status="desmarcou"] .col-dot{background:var(--cancelled);}
+  .col[data-status="desmarcou"] .card{border-left-color:var(--cancelled);}
+  .empty-state{text-align:center;padding:28px 16px;color:var(--text-muted);font-size:0.80rem;}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(46,34,26,0.45);z-index:200;align-items:center;justify-content:center;padding:16px;}
+  .overlay.open{display:flex;}
+  .modal{background:var(--white);border-radius:18px;padding:24px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(46,34,26,0.22);animation:slideUp 0.22s ease;max-height:90vh;overflow-y:auto;}
+  @keyframes slideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal h2{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;color:var(--brown-dark);margin-bottom:18px;}
+  .field{margin-bottom:14px;display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:0.75rem;font-weight:500;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;}
+  .field input,.field textarea{border:1.5px solid var(--beige-mid);border-radius:9px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--beige-light);outline:none;transition:border-color 0.15s;width:100%;}
+  .field input:focus,.field textarea:focus{border-color:var(--brown);}
+  .field textarea{resize:vertical;min-height:60px;}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+  .btn-cancel{background:none;border:1.5px solid var(--beige-mid);border-radius:9px;padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:0.84rem;color:var(--text-muted);cursor:pointer;}
+  .btn-save{background:var(--brown-dark);color:var(--beige-light);border:none;border-radius:9px;padding:9px 22px;font-family:'DM Sans',sans-serif;font-size:0.84rem;font-weight:500;cursor:pointer;}
+  .btn-save:hover{background:var(--brown);}
+  .btn-danger{background:#c89a9a;color:#5c2020;border:none;border-radius:9px;padding:9px 16px;font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;margin-right:auto;}
+  .status-select{display:flex;gap:8px;flex-wrap:wrap;}
+  .status-opt{border:1.5px solid var(--beige-mid);border-radius:8px;padding:6px 13px;font-size:0.80rem;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--white);color:var(--text-muted);transition:all 0.15s;}
+  .status-opt[data-val="pendente"].active{background:#f5e8d8;border-color:var(--pending);color:var(--brown-dark);font-weight:500;}
+  .status-opt[data-val="agendado"].active{background:#d8f0e0;border-color:var(--scheduled);color:#3a6b4a;font-weight:500;}
+  .status-opt[data-val="realizado"].active{background:#d8e8f5;border-color:var(--done);color:#2a4a6b;font-weight:500;}
+  .status-opt[data-val="desmarcou"].active{background:#f5d8d8;border-color:var(--cancelled);color:#6b2a2a;font-weight:500;}
+  .recall-row{display:none;}
+  .recall-row.visible{display:flex;flex-direction:column;gap:5px;}
+  .fab{display:none;position:fixed;bottom:24px;right:20px;background:var(--brown-dark);color:var(--beige-light);border:none;border-radius:50%;width:54px;height:54px;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 18px rgba(46,34,26,0.30);z-index:150;align-items:center;justify-content:center;}
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--brown-dark);color:var(--beige-light);padding:10px 20px;border-radius:20px;font-size:0.82rem;z-index:999;transition:transform 0.3s;pointer-events:none;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  @media(max-width:640px){.btn-add-top{display:none;}.fab{display:flex;}.col{flex:0 0 240px;}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Procedimentos Pendentes</h1><small>Dr. Carlos Alberto Bruno</small></div>
+  <div class="header-right">
+    <span class="badge-total" id="badge-total">—</span>
+    <button class="btn-add-top" onclick="openModal()">+ Novo paciente</button>
+  </div>
+</header>
+<div class="stats-bar" id="stats-bar"></div>
+<div class="filters">
+  <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+  <button class="filter-btn" onclick="setFilter('pendente',this)">Pendente</button>
+  <button class="filter-btn" onclick="setFilter('agendado',this)">Agendado</button>
+  <button class="filter-btn" onclick="setFilter('desmarcou',this)">Desmarcou</button>
+  <button class="filter-btn" onclick="setFilter('realizado',this)">Realizado</button>
+</div>
+<div class="board" id="board"></div>
+<button class="fab" onclick="openModal()">+</button>
+<div class="toast" id="toast"></div>
 
+<div class="overlay" id="overlay" onclick="outsideClick(event,'overlay')">
+  <div class="modal">
+    <h2 id="modal-title">Novo Procedimento</h2>
+    <div class="field"><label>Nome do Paciente</label><input type="text" id="f-name" placeholder="Ex: Maria Silva"></div>
+    <div class="field"><label>Procedimento(s)</label><textarea id="f-proc" placeholder="Ex: Biópsia nevo dorso + laser facial"></textarea></div>
+    <div class="field">
+      <label>Status</label>
+      <div class="status-select">
+        <button class="status-opt active" data-val="pendente" onclick="selectStatus('pendente',this)">⏳ Pendente</button>
+        <button class="status-opt" data-val="agendado" onclick="selectStatus('agendado',this)">📅 Agendado</button>
+        <button class="status-opt" data-val="desmarcou" onclick="selectStatus('desmarcou',this)">📞 Desmarcou</button>
+        <button class="status-opt" data-val="realizado" onclick="selectStatus('realizado',this)">✅ Realizado</button>
+      </div>
+    </div>
+    <div class="field recall-row" id="recall-row"><label>📞 Religar em</label><input type="date" id="f-recall"></div>
+    <div class="field"><label>Observação (opcional)</label><input type="text" id="f-obs" placeholder="Ex: Prefere manhã, aguardando exames..."></div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="btn-delete" onclick="deleteCard()" style="display:none">Excluir</button>
+      <button class="btn-cancel" onclick="closeOverlay('overlay')">Cancelar</button>
+      <button class="btn-save" onclick="saveCard()">Salvar</button>
+    </div>
+  </div>
+</div>
 
+<script>
+var TG_TOKEN='8591938855:AAHKiwqsGYS52Zrkze8oyOKq1YgDISBp8nU';
+var TG_CHAT_ID='861140696';
+var LS_KEY='drcarlos_procedimentos_v4';
+
+var data=[],editingId=null,currentStatus='pendente',currentFilter='todos',prevStatus=null;
+var COLS=[{id:'pendente',label:'Pendente',emoji:'⏳'},{id:'agendado',label:'Agendado',emoji:'📅'},{id:'desmarcou',label:'Desmarcou',emoji:'📞'},{id:'realizado',label:'Realizado',emoji:'✅'}];
+var SL={pendente:'Pendente',agendado:'Agendado',desmarcou:'Desmarcou',realizado:'Realizado'};
+
+window.onload=function(){load();};
+
+function load(){
+  try{var s=localStorage.getItem(LS_KEY);data=s?JSON.parse(s):[];}catch(e){data=[];}
+  if(!Array.isArray(data))data=[];
+  render();
+}
+
+function save(){
+  localStorage.setItem(LS_KEY,JSON.stringify(data));
+  showToast('✅ Salvo!');
+}
+
+async function sendTelegram(card,oldStatus){
+  var isNew=!oldStatus,changed=oldStatus&&oldStatus!==card.status;
+  var header=isNew?'🆕 Novo procedimento':changed?'🔄 Status atualizado':'✏️ Procedimento editado';
+  var extra=changed?'\n'+SL[oldStatus]+' → '+SL[card.status]:'\n'+SL[card.status];
+  if(card.status==='desmarcou'&&card.recall)extra+='\n📞 Religar: '+fmtDate(card.recall);
+  if(card.obs)extra+='\n📝 '+card.obs;
+  var msg=header+'\n\n👤 '+card.name+'\n🩺 '+card.proc+extra;
+  try{await fetch('https://api.telegram.org/bot'+TG_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT_ID,text:msg})});}catch(e){}
+}
+
+function render(){
+  var board=document.getElementById('board');board.innerHTML='';
+  var filtered=currentFilter==='todos'?data:data.filter(function(c){return c.status===currentFilter;});
+  var pend=data.filter(function(c){return c.status==='pendente';}).length;
+  document.getElementById('badge-total').textContent=pend+(pend===1?' pendente':' pendentes');
+  var colors={pendente:'#c8a882',agendado:'#7aab8a',desmarcou:'#c89a9a',realizado:'#9ab5c8'};
+  document.getElementById('stats-bar').innerHTML=COLS.map(function(col){
+    var n=data.filter(function(c){return c.status===col.id;}).length;
+    return '<div class="stat-chip"><div class="stat-dot" style="background:'+colors[col.id]+'"></div><span>'+col.label+'</span><strong>'+n+'</strong></div>';
+  }).join('');
+  COLS.forEach(function(col){
+    var cards=filtered.filter(function(c){return c.status===col.id;}).sort(function(a,b){return(b.createdAt||0)-(a.createdAt||0);});
+    var el=document.createElement('div');el.className='col';el.dataset.status=col.id;
+    el.innerHTML='<div class="col-header"><div class="col-dot"></div><span class="col-title">'+col.emoji+' '+col.label+'</span><span class="col-count">'+cards.length+'</span></div><div class="col-body"></div>';
+    board.appendChild(el);
+    var body=el.querySelector('.col-body');
+    if(!cards.length){body.innerHTML='<div class="empty-state">Sem pacientes aqui</div>';return;}
+    cards.forEach(function(card){
+      var c=document.createElement('div');c.className='card';
+      c.onclick=function(){openModal(card.id);};
+      var badge='';
+      if(card.status==='desmarcou'&&card.recall){
+        var diff=daysDiff(card.recall);
+        var cls=diff!==null&&diff<=2?'alert':'';
+        var lbl=diff===0?'Religar hoje':diff===1?'Religar amanhã':'Religar '+fmtDate(card.recall);
+        badge='<span class="card-date '+cls+'">📞 '+lbl+'</span>';
+      }else if(card.createdAt){
+        var dt=new Date(card.createdAt);
+        badge='<span class="card-date">'+dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+'</span>';
+      }
+      var btns=COLS.filter(function(x){return x.id!==card.status;}).map(function(x){
+        return '<button class="card-btn" onclick="quickMove(event,\''+card.id+'\',\''+x.id+'\')" title="'+x.label+'">'+x.emoji+'</button>';
+      }).join('');
+      c.innerHTML='<div class="card-name">'+card.name+'</div><div class="card-proc">'+card.proc+'</div>'+(card.obs?'<div class="card-proc" style="font-style:italic;opacity:.7">'+card.obs+'</div>':'')+'<div class="card-meta">'+badge+'<div class="card-actions">'+btns+'</div></div>';
+      body.appendChild(c);
+    });
+  });
+}
+
+function openModal(id){
+  editingId=id||null;
+  var card=id?data.find(function(c){return c.id===id;}):null;
+  prevStatus=card?card.status:null;
+  document.getElementById('modal-title').textContent=card?'Editar Paciente':'Novo Procedimento';
+  document.getElementById('f-name').value=card?card.name:'';
+  document.getElementById('f-proc').value=card?card.proc:'';
+  document.getElementById('f-obs').value=card?(card.obs||''):'';
+  document.getElementById('f-recall').value=card?(card.recall||''):'';
+  document.getElementById('btn-delete').style.display=card?'block':'none';
+  selectStatus(card?card.status:'pendente');
+  openOverlay('overlay');
+  setTimeout(function(){document.getElementById('f-name').focus();},100);
+}
+
+function selectStatus(val){
+  currentStatus=val;
+  document.querySelectorAll('.status-opt').forEach(function(b){b.classList.toggle('active',b.dataset.val===val);});
+  document.getElementById('recall-row').classList.toggle('visible',val==='desmarcou');
+}
+
+async function saveCard(){
+  var name=document.getElementById('f-name').value.trim();
+  var proc=document.getElementById('f-proc').value.trim();
+  if(!name||!proc){alert('Preencha o nome e o procedimento.');return;}
+  var recall=currentStatus==='desmarcou'?document.getElementById('f-recall').value:'';
+  var obs=document.getElementById('f-obs').value.trim();
+  var card,oldSt;
+  if(editingId){
+    card=data.find(function(c){return c.id===editingId;});
+    oldSt=prevStatus!==currentStatus?prevStatus:null;
+    card.name=name;card.proc=proc;card.status=currentStatus;card.recall=recall;card.obs=obs;
+  }else{
+    card={id:uid(),name:name,proc:proc,status:currentStatus,recall:recall,obs:obs,createdAt:Date.now()};
+    data.push(card);oldSt=null;
+  }
+  closeOverlay('overlay');
+  save();
+  render();
+  await sendTelegram(card,oldSt);
+}
+
+async function deleteCard(){
+  if(!editingId||!confirm('Remover este paciente do painel?'))return;
+  data=data.filter(function(c){return c.id!==editingId;});
+  closeOverlay('overlay');save();render();
+}
+
+async function quickMove(e,id,status){
+  e.stopPropagation();
+  var card=data.find(function(c){return c.id===id;});if(!card)return;
+  var old=card.status;card.status=status;
+  if(status!=='desmarcou')card.recall='';
+  save();render();await sendTelegram(card,old);
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');render();}
+function daysDiff(s){if(!s)return null;var d=new Date(s+'T00:00:00'),n=new Date();n.setHours(0,0,0,0);return Math.round((d-n)/86400000);}
+function fmtDate(s){if(!s)return'';var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2000);}
+function openOverlay(id){document.getElementById(id).classList.add('open');}
+function closeOverlay(id){document.getElementById(id).classList.remove('open');if(id==='overlay')editingId=null;}
+function outsideClick(e,id){if(e.target===document.getElementById(id))closeOverlay(id);}
+</script>
+</body>
+</html>
